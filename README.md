@@ -3,8 +3,10 @@
 Git download - https://git-scm.com/downloads
 
 SetUp Git - https://help.github.com/articles/set-up-git/
+
+gh-pages deploy 
 ```sh
-gh-pages deploy git subtree push --prefix {folder} origin gh-pages
+git subtree push --prefix {folder} origin gh-pages
 ```
 ##Country Data
 ```javascript
