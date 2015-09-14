@@ -1,6 +1,6 @@
 # InfoViz
 ## Git
-git download - https://git-scm.com/downloads
+Git download - https://git-scm.com/downloads
 
 SetUp Git - https://help.github.com/articles/set-up-git/
 
