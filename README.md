@@ -11,10 +11,12 @@ git subtree push --prefix {folder} origin gh-pages
 ##References
 ###HTML
 W3C - http://www.w3schools.com/html/
+
 Mozilla - https://developer.mozilla.org/en-US/docs/Web/HTML/Element
 
 ###CSS
 W3C - http://www.w3schools.com/css/
+
 Mozilla - https://developer.mozilla.org/en-US/docs/Web/CSS/Reference
 
 ##Country Data
