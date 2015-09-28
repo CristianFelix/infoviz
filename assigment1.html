@@ -1,0 +1,61 @@
+<html>
+    <head>
+        <title>Country GDP vs Easy of business</title>
+        <style>
+            body{
+                margin: 0px;
+                font-family: "arial"
+            }
+            h1{
+                background-color: navy;
+                color: white;
+                padding: 5px;
+            }
+            .strong{
+                font-weight: bold;
+            }
+            #main{
+                padding: 5px;
+            }
+            button {
+                background-color: navy;
+                color: white;
+                border: none;
+                font-weight: bold;
+            }
+        </style>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+        <script>
+            var countries = [
+                { name: "Brazil", GDP: 1000 },
+                { name: "Iraq", GDP: 890 },
+                { name: "US", GDP: 300 },
+                { name: "India", GDP: 500 }
+            ]
+
+            function search() {
+                var value = d3.select("#srchBox").node().value;
+                var result = countries.filter(function(c) {
+                    return c.name === value;
+                })
+
+                if(result.length === 0) {
+                    alert("No Country found for: " + value)
+                } else {
+                    d3.select("#result").html(value + ": $" + result[0].GDP);
+                }
+            }
+        </script>
+    </head>
+    <body>
+       <h1>Country GDP vs Easy of business</h1>
+        <div id="main">
+            <label>Search: </label>
+            <input type="text" id="srchBox" >
+            <button onclick="search()">GO</button>
+            <span>GDP: </span>
+            <span class="strong" id="result"></span>
+        </div>
+    </body>
+    
+</html>
