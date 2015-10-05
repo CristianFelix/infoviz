@@ -1,0 +1,68 @@
+<html>
+    <head>
+        <style>
+            textarea{
+                font-family: monospace;
+                display: block;
+                height: 200px;
+                width: 400px;
+            }
+            button {
+                background-color: navy;
+                color: white;
+                border: none;
+            }
+        </style>
+    </head>
+    <body>
+        <textarea id="dataText">[
+    { "name": "Brazil", "GDP": 1000 },
+    { "name": "Iraq", "GDP": 890 },
+    { "name": "US", "GDP": 300 },
+    { "name": "India", "GDP": 500 }
+]</textarea>
+        <button onclick="update()">Update</button>
+        
+        <ul id="list"></ul>
+        
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script>
+        function getNewData() {
+            var data = JSON.parse(d3.select("textarea").node().value);
+            return data;
+        }
+        
+        function update() {
+            var data = getNewData();
+            
+            var selection = d3.select("#list")
+                .selectAll("li")
+                .data(data, function(d) { return d.name; });
+            
+            //enter
+            selection.enter().append("li");
+            
+            //exit
+            selection.exit().remove();
+            
+            //Update
+            selection.text(function(d) { return d.name + ": " + d.GDP });
+            
+            console.log(data);
+        }
+        
+    </script>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
