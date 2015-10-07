@@ -1,0 +1,43 @@
+<html>
+    <head></head>
+    <body>
+        <ul id="list"></ul><!-- Element that will contain the list of countries -->
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script>
+        //Data used in this example
+        var data = [
+            { "name": "Brazil", "GDP": 1000 },
+            { "name": "Iraq", "GDP": 890 },
+            { "name": "US", "GDP": 300 },
+            { "name": "India", "GDP": 500 }
+        ]
+        
+        function showList(data) {
+            //Select the element that will hold the list
+            var selection = d3.select("#list") 
+                //Create virtual elements to be bound to the data
+                .selectAll("li") 
+                //Bind each future 'li' elements with each item in the data
+                .data(data, function(d) { return d.name; }); 
+            
+            //enter -> Operate only in new elements
+            selection.enter() 
+                //Create a real 'li' element for each item in the data
+                .append("li") 
+                //Set the text inside the 'li' element to be the name and the GDP of the give country
+                .text(function(d) { return d.name + ": " + d.GDP }); 
+        }
+        
+        //Call the function to draw the list
+        showList(data);
+    </script>
+</html>
+
+
+
+
+
+
+
+
