@@ -1,0 +1,220 @@
+<html>
+    <head>
+        <style>
+            circle{
+                fill: red; /*Set the color of the circle to red */
+                opacity: 0.5; /*Set the opacity of the circle allowing the user to notice circles in the same position */
+            }
+            .domain {
+                stroke: #000;
+                fill: none;
+            }
+            #tooltip {
+                background-color: white;
+                border: solid 1px #000;
+                width: 150px;
+                display: none;
+                position: absolute;
+            }
+            #CountryName {
+                font-weight: bold;
+                display: block;
+            }
+            .highlighted {
+                background: red;
+                color: white;
+            }
+        </style>
+    </head>
+    <body>
+       <div id="Info"></div>
+       <div id="tooltip">
+           <span id="CountryName">US</span>
+           <span id="CountryGDP">5654</span>
+           <span id="CountryEasy">154</span>
+       </div>
+        <input onkeyup="Controler.filter(this.value)" />
+        <ul id="CountryList"></ul>
+        <svg id="viz"></svg><!-- Element that will contain the visualization -->
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
+    <script>
+        //Data used in this example
+        var data = [
+            { "name": "Brazil", "GDP": 1000, Easy: 50 },
+            { "name": "Iraq", "GDP": 890, Easy: 45 },
+            { "name": "US", "GDP": 300, Easy: 75 },
+            { "name": "India", "GDP": 500, Easy: 100 }
+        ]
+        
+        var Dispatcher = {
+            add: function(view) {
+                if(!this.subscribers) {
+                    this.subscribers = [];
+                }
+                this.subscribers.push(view);
+            },
+            notify: function(type, payload) {
+                this.subscribers.forEach(function(s) {
+                    s[type](payload);
+                });
+            }
+        }
+        
+        var Controler = {
+            loadData: function() {
+                this.data = data;
+                Dispatcher.notify('dataUpdated', this.data);
+            },
+            remove: function(idx) {
+                this.data.splice(idx, 1);
+                Dispatcher.notify('dataUpdated', this.data);
+            },
+            filter: function(value) {
+                var dt = this.data.filter(function(d) {
+                    return d.name.toLowerCase().indexOf(value.toLowerCase()) > -1;
+                })
+                Dispatcher.notify('dataUpdated', dt);
+            }
+        }
+        
+        var CountryList = {
+            init: function() {
+                this.list = d3.select("#CountryList");
+            },
+            getElement: function(d) {
+                return this.list.selectAll("li").filter(function(e) { return d.name == e.name });
+            },
+            dataUpdated: function(data) {
+                var selection = this.list.selectAll("li").data(data, function(d) { return d.name; });
+                selection.enter().append("li").text(function(d) { return d.name; })
+                    .on('mouseover', function(d) {
+                        Dispatcher.notify('onHighlight', d);
+                    }).on('mouseout', function(d) { //run every time the mouse leaves the dot
+                        Dispatcher.notify('onUnHighlight', d);
+                    });
+                
+                selection.exit().remove();
+            },
+            onHighlight: function(d) {
+                this.list.selectAll("li")
+                    .classed('highlighted', function(e) { return d.name == e.name })
+            },
+            onUnHighlight: function(d) {
+                this.list.selectAll("li")
+                    .classed('highlighted', false)
+            },
+            onRemove: function(d) {
+                this.getElement(d)
+                    .remove();
+            }
+            
+        }
+        
+        var Sactterplot = {
+            init: function() {
+                d3.select("#viz").attr("width", 600);
+                d3.select("#viz").attr("height", 400);
+                
+                this.scaleX = d3.scale.linear();
+                this.scaleY = d3.scale.linear();
+                
+                this.scaleX.range([40, 580])
+                this.scaleY.range([380, 10]);
+                
+                this.xAxis = d3.svg.axis().scale(this.scaleX).orient("bottom");
+                this.yAxis = d3.svg.axis().scale(this.scaleY).orient("left");
+                
+                this.xAxisGroup = d3.select("#viz").append("g")
+                    .attr("transform", "translate(0,380)" )
+                    
+                this.yAxisGroup = d3.select("#viz").append("g")
+                    .attr("transform", "translate(40,0)" )
+                    
+                
+            },
+            dataUpdated: function(data) {
+                var self = this;
+                
+                this.scaleX.domain([0, d3.max(data, function(d) { return d.GDP; })]);
+                this.scaleY.domain([0, d3.max(data, function(d) { return d.Easy; })]);
+                
+                var selection = d3.select("#viz") 
+                    .selectAll("circle") 
+                    .data(data, function(d) { return d.name; }); 
+                
+                selection.enter() 
+                    .append("circle") 
+                    .on('mouseover', function(d) {
+                        Dispatcher.notify('onHighlight', d);    
+                    }).on('mouseout', function(d) { //run every time the mouse leaves the dot
+                        Dispatcher.notify('onUnHighlight', d); 
+                    }).on('click', function(d) {
+                        Dispatcher.notify('onSelect', d);
+                    }).on('contextmenu', function(d, i){
+                        d3.event.preventDefault();
+                        d3.select("#tooltip").style({
+                            'display': 'none'
+                        });
+                        Controler.remove(i);
+                    });
+                
+                selection.exit().remove();
+                
+                selection.transition().attr({
+                    r: 5,
+                    cx: function(d) { return self.scaleX(d.GDP) },
+                    cy: function(d) { return this.scaleY(d.Easy) }.bind(this)
+                });
+                
+                this.xAxisGroup.transition().call(this.xAxis);
+                this.yAxisGroup.transition().call(this.yAxis);
+            },
+            getItem: function(d) {
+                return d3.select("#viz").selectAll("circle").filter(function(e){
+                    return d.name == e.name;
+                });
+            },
+            onHighlight: function(d){
+                this.getItem(d) //Select the circle/dot
+                    .attr("r", 10); //changes the radius
+
+                var tooltip = d3.select("#tooltip");
+                tooltip.select("#CountryName").text(d.name);
+                tooltip.select("#CountryGDP").text(d.GDP);
+                tooltip.select("#CountryEasy").text(d.Easy);
+
+                tooltip.style({
+                    'display': 'block',
+                    'top': d3.event.y + 10,
+                    'left': d3.event.x + 10
+                })
+            },
+            onUnHighlight: function(d){
+                this.getItem(d)
+                    .attr("r", 5);
+                 d3.select("#tooltip").style({
+                    'display': 'none'
+                })
+            }, 
+            onSelect: function(d){
+                d3.select("#Info").text(d.name + ' - ' + d.GDP + ' - ' + d.Easy);
+            }
+        }
+        //----------------------------------------
+        Sactterplot.init();
+        CountryList.init();
+        Dispatcher.add(Sactterplot);
+        Dispatcher.add(CountryList);
+        Controler.loadData(data);
+        
+    </script>
+</html>
+
+
+
+
+
+
+
+
