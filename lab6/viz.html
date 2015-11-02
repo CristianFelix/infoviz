@@ -68,9 +68,17 @@
                 this.data = data;
                 Dispatcher.notify('dataUpdated', this.data); //Notify the views that the data has been updated.
             },
-            remove: function(idx) { //Remove and element of the data array
-                this.data.splice(idx, 1);
+            remove: function(d) { //Remove and element of the data array
+                this.data.splice(this.indexByKey(d.name), 1);
                 Dispatcher.notify('dataUpdated', this.data); //Notify the views that the data has been updated.
+            },
+            indexByKey: function(key) {
+                for(var i = 0; i< this.data.length; i++){
+                    if(this.data[i].name == key) {
+                        return i;
+                    }
+                }
+                return -1;
             },
             filter: function(value) { //Filter the Data
                 var dt = this.data.filter(function(d) {
@@ -156,7 +164,7 @@
                         d3.select("#tooltip").style({           //Hide the tooltip
                             'display': 'none'
                         });
-                        Controler.remove(i);   //Call the controler to remove the datapoint
+                        Controler.remove(d);   //Call the controler to remove the datapoint
                     });
                 //**//
                 
