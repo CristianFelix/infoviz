@@ -5,7 +5,7 @@
                 fill: red; /*Set the color of the circle to red */
                 opacity: 0.5; /*Set the opacity of the circle allowing the user to notice circles in the same position */
             }
-            .domain {
+            .domain { /*The lines in the axis*/
                 stroke: #000;
                 fill: none;
             }
@@ -16,11 +16,11 @@
                 display: none;
                 position: absolute;
             }
-            #CountryName {
+            #CountryName { /*Name of the country in the tooltip */
                 font-weight: bold;
                 display: block;
             }
-            .highlighted {
+            .highlighted { /*class for highlithed elements in the list */
                 background: red;
                 color: white;
             }
@@ -28,13 +28,13 @@
     </head>
     <body>
        <div id="Info"></div>
-       <div id="tooltip">
+       <div id="tooltip"> <!-- The tooltip, this element is hidden when the application loads -->
            <span id="CountryName">US</span>
            <span id="CountryGDP">5654</span>
            <span id="CountryEasy">154</span>
        </div>
         <input onkeyup="Controler.filter(this.value)" />
-        <ul id="CountryList"></ul>
+        <ul id="CountryList"></ul> <!-- Element that will contain the country list -->
         <svg id="viz"></svg><!-- Element that will contain the visualization -->
     </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js" charset="utf-8"></script>
@@ -47,166 +47,171 @@
             { "name": "India", "GDP": 500, Easy: 100 }
         ]
         
+        //Create the Dispatcher object. It is responsible for notifing all views about any event.
         var Dispatcher = {
-            add: function(view) {
-                if(!this.subscribers) {
-                    this.subscribers = [];
+            add: function(view) {               //This function subscribe new views to the dispatcher so they can be notified
+                if(!this.subscribers) { //Check if the array exists 
+                    this.subscribers = []; //Create if not.
                 }
-                this.subscribers.push(view);
+                this.subscribers.push(view); //add the view to the array
             },
             notify: function(type, payload) {
-                this.subscribers.forEach(function(s) {
-                    s[type](payload);
+                this.subscribers.forEach(function(s) { //For each view of the array
+                    s[type](payload);                  //Call the method with the name passed in the type argument, and pass the payload as paramter
                 });
             }
         }
         
+        //Create the Controler, this is the place where the main logic of the application goes, including data manipulation
         var Controler = {
-            loadData: function() {
+            loadData: function() { //Load the data. This function cam be used to load the CSV file and process it. And than call the Dipatcher.notify on the callback
                 this.data = data;
-                Dispatcher.notify('dataUpdated', this.data);
+                Dispatcher.notify('dataUpdated', this.data); //Notify the views that the data has been updated.
             },
-            remove: function(idx) {
+            remove: function(idx) { //Remove and element of the data array
                 this.data.splice(idx, 1);
-                Dispatcher.notify('dataUpdated', this.data);
+                Dispatcher.notify('dataUpdated', this.data); //Notify the views that the data has been updated.
             },
-            filter: function(value) {
+            filter: function(value) { //Filter the Data
                 var dt = this.data.filter(function(d) {
-                    return d.name.toLowerCase().indexOf(value.toLowerCase()) > -1;
+                    return d.name.toLowerCase().indexOf(value.toLowerCase()) > -1; //Check if the substring 'value' is present in the country name. Uses lowercase to make sure that "United States" == "united states"
                 })
-                Dispatcher.notify('dataUpdated', dt);
+                Dispatcher.notify('dataUpdated', dt);//Notify the views that the data has been updated, passinf the filtered data.
             }
         }
         
+        //View 01 - The contry list in the left of the screen
         var CountryList = {
             init: function() {
-                this.list = d3.select("#CountryList");
+                this.list = d3.select("#CountryList"); //Specify which HTML element will hold the list
             },
-            getElement: function(d) {
+            getElement: function(d) { //Utility function do get the HTML element given a data point
                 return this.list.selectAll("li").filter(function(e) { return d.name == e.name });
             },
-            dataUpdated: function(data) {
-                var selection = this.list.selectAll("li").data(data, function(d) { return d.name; });
-                selection.enter().append("li").text(function(d) { return d.name; })
+            dataUpdated: function(data) { //Update the data, runs every time the event 'dataUpdated' is fired.
+                var selection = this.list.selectAll("li").data(data, function(d) { return d.name; }); //Bind data to "li" elements using name as key
+                selection.enter().append("li").text(function(d) { return d.name; }) //Add a "li" element for each new data point
                     .on('mouseover', function(d) {
-                        Dispatcher.notify('onHighlight', d);
-                    }).on('mouseout', function(d) { //run every time the mouse leaves the dot
-                        Dispatcher.notify('onUnHighlight', d);
+                        Dispatcher.notify('onHighlight', d); //Notify the views that a datapoint have been Highlighted 
+                    }).on('mouseout', function(d) { 
+                        Dispatcher.notify('onUnHighlight', d); //Notify the views that a datapoint have been Unhighlighted 
                     });
                 
-                selection.exit().remove();
+                selection.exit().remove(); //Remove elements from the visualization that have been removed from data.
             },
             onHighlight: function(d) {
                 this.list.selectAll("li")
-                    .classed('highlighted', function(e) { return d.name == e.name })
+                    .classed('highlighted', function(e) { return d.name == e.name }) //Add the class 'highlighted' to the highlighted element 
             },
             onUnHighlight: function(d) {
                 this.list.selectAll("li")
-                    .classed('highlighted', false)
-            },
-            onRemove: function(d) {
-                this.getElement(d)
-                    .remove();
+                    .classed('highlighted', false) //Remove the class 'highlighted' from all elements 
             }
-            
         }
         
+        //View 02 - The scatterplot
         var Sactterplot = {
-            init: function() {
-                d3.select("#viz").attr("width", 600);
-                d3.select("#viz").attr("height", 400);
+            init: function() { //Initiate the scatterplot, everything in this function do not depened on data.
+                d3.select("#viz").attr("width", 600); //Change the width of the SVG element
+                d3.select("#viz").attr("height", 400); //Change the height of the SVG element
                 
-                this.scaleX = d3.scale.linear();
-                this.scaleY = d3.scale.linear();
+                this.scaleX = d3.scale.linear(); //Create the scale for the X axis
+                this.scaleY = d3.scale.linear(); //Create the scale for the Y axis
                 
-                this.scaleX.range([40, 580])
-                this.scaleY.range([380, 10]);
+                this.scaleX.range([40, 580]); //Set the range for the X axis in pixels
+                this.scaleY.range([380, 10]); //Set the range for the Y axis in pixels
                 
-                this.xAxis = d3.svg.axis().scale(this.scaleX).orient("bottom");
-                this.yAxis = d3.svg.axis().scale(this.scaleY).orient("left");
+                this.xAxis = d3.svg.axis().scale(this.scaleX).orient("bottom"); //Create the function that builds the x Axis that will be on the bottom of the screen
+                this.yAxis = d3.svg.axis().scale(this.scaleY).orient("left"); //Create the function that builds the y Axis that will be on the left of the screen
                 
-                this.xAxisGroup = d3.select("#viz").append("g")
-                    .attr("transform", "translate(0,380)" )
+                this.xAxisGroup = d3.select("#viz").append("g") //Create a group to hold the svg elements that will be part of the x axis
+                    .attr("transform", "translate(0,380)" ) //Move the group to the bottom so the axis will be shown on the bottom of the screen.
                     
-                this.yAxisGroup = d3.select("#viz").append("g")
-                    .attr("transform", "translate(40,0)" )
+                this.yAxisGroup = d3.select("#viz").append("g") //Create a group to hold the svg elements that will be part of the y axis
+                    .attr("transform", "translate(40,0)" ) //Move the group 40 pixels to the righ to make room for the labels
                     
                 
             },
-            dataUpdated: function(data) {
-                var self = this;
+            dataUpdated: function(data) { //Runs everytime that data changes
+                var self = this; //Assign 'this' to the variable 'self' so we can access it inside sub functions
                 
-                this.scaleX.domain([0, d3.max(data, function(d) { return d.GDP; })]);
-                this.scaleY.domain([0, d3.max(data, function(d) { return d.Easy; })]);
+                this.scaleX.domain([0, d3.max(data, function(d) { return d.GDP; })]); //Update the domain of the X scale
+                this.scaleY.domain([0, d3.max(data, function(d) { return d.Easy; })]); //Update the domain of the Y scale
                 
                 var selection = d3.select("#viz") 
                     .selectAll("circle") 
-                    .data(data, function(d) { return d.name; }); 
+                    .data(data, function(d) { return d.name; }); //Bind the data to circle elements in the svg
                 
+                //**Runs only if there are new data points in the array, and only for the new elements **//
                 selection.enter() 
-                    .append("circle") 
+                    .append("circle")  //Add a circle for the new datapoint.
                     .on('mouseover', function(d) {
-                        Dispatcher.notify('onHighlight', d);    
-                    }).on('mouseout', function(d) { //run every time the mouse leaves the dot
-                        Dispatcher.notify('onUnHighlight', d); 
+                        Dispatcher.notify('onHighlight', d);    //notify the views that an datapoint has been highlighted 
+                    }).on('mouseout', function(d) { 
+                        Dispatcher.notify('onUnHighlight', d);  //notify the views that an datapoint has been unhighlighted 
                     }).on('click', function(d) {
-                        Dispatcher.notify('onSelect', d);
-                    }).on('contextmenu', function(d, i){
-                        d3.event.preventDefault();
-                        d3.select("#tooltip").style({
+                        Dispatcher.notify('onSelect', d);       //notify the views that an datapoint has been selected 
+                    }).on('contextmenu', function(d, i){        //runs on right click
+                        d3.event.preventDefault();              //Prevent the browser of showing the default context menu
+                        d3.select("#tooltip").style({           //Hide the tooltip
                             'display': 'none'
                         });
-                        Controler.remove(i);
+                        Controler.remove(i);   //Call the controler to remove the datapoint
                     });
+                //**//
                 
-                selection.exit().remove();
+                //**Runs only if any datapoint has been removed in the array, and only for the removed datapoints **//
+                selection.exit().remove(); //Remove the circle from the screen
+                //**//
                 
-                selection.transition().attr({
+                //**Runs for all datapoints that still in the array**/
+                selection.transition().attr({ //The transition make the changes in the attributes to be interpolated, creating an animated transition
                     r: 5,
                     cx: function(d) { return self.scaleX(d.GDP) },
                     cy: function(d) { return this.scaleY(d.Easy) }.bind(this)
                 });
-                
-                this.xAxisGroup.transition().call(this.xAxis);
-                this.yAxisGroup.transition().call(this.yAxis);
+                //**//
+                this.xAxisGroup.transition().call(this.xAxis); //Update the X Axis
+                this.yAxisGroup.transition().call(this.yAxis); //Update the Y Axis
             },
-            getItem: function(d) {
+            getItem: function(d) { //Utility function do get the SVG element given a data point
                 return d3.select("#viz").selectAll("circle").filter(function(e){
                     return d.name == e.name;
                 });
             },
-            onHighlight: function(d){
+            onHighlight: function(d){ //Runs every time a dot have been highlighted no matter in which view.
                 this.getItem(d) //Select the circle/dot
                     .attr("r", 10); //changes the radius
 
-                var tooltip = d3.select("#tooltip");
-                tooltip.select("#CountryName").text(d.name);
-                tooltip.select("#CountryGDP").text(d.GDP);
-                tooltip.select("#CountryEasy").text(d.Easy);
+                //Update the tooltip information
+                var tooltip = d3.select("#tooltip"); 
+                    tooltip.select("#CountryName").text(d.name);
+                    tooltip.select("#CountryGDP").text(d.GDP);
+                    tooltip.select("#CountryEasy").text(d.Easy);
 
                 tooltip.style({
-                    'display': 'block',
-                    'top': d3.event.y + 10,
-                    'left': d3.event.x + 10
+                    'display': 'block', //Show the tooltip
+                    'top': d3.event.y + 10, //Move the tooltip close to the mouse
+                    'left': d3.event.x + 10 //Move the tooltip close to the mouse
                 })
             },
-            onUnHighlight: function(d){
-                this.getItem(d)
-                    .attr("r", 5);
+            onUnHighlight: function(d){ //Runs every time a dot have been unhighlighted no matter in which view.
+                this.getItem(d) //Select the circle/dot
+                    .attr("r", 5); //changes the radius
                  d3.select("#tooltip").style({
-                    'display': 'none'
+                    'display': 'none' //Hide the tooltip
                 })
             }, 
-            onSelect: function(d){
+            onSelect: function(d){ //Runs every time a dot have been selected no matter in which view.
                 d3.select("#Info").text(d.name + ' - ' + d.GDP + ' - ' + d.Easy);
             }
         }
         //----------------------------------------
-        Sactterplot.init();
-        CountryList.init();
-        Dispatcher.add(Sactterplot);
-        Dispatcher.add(CountryList);
-        Controler.loadData(data);
+        Sactterplot.init(); //Initiate the scatterplot
+        CountryList.init(); //Initiate the CountryList
+        Dispatcher.add(Sactterplot); //Add the scatterplot as a subscriber of the dispatcher
+        Dispatcher.add(CountryList); //Add the countrylist as a subscriber of the dispatcher
+        Controler.loadData(data); //Load the data.
         
     </script>
 </html>
