@@ -1,0 +1,48 @@
+<html>
+    <head>
+        <title>This is an Visualization</title>
+        <style>
+            button { 
+                background-color: steelblue;
+                color: white;
+                border-style: none;
+            }
+        </style>
+    </head>
+    <body>
+        <h1 id="Title">Title</h1>
+        <div id="clock"></div>
+        <div>
+            <label>Title</label>
+            <input type="text" id="textInput">
+            <button onclick="changeTitle();">Change</button>
+        </div>
+        <ul id="log">
+        </ul>
+    </body>
+    <script>
+        var newTitle = "This is the net title";
+        
+        setInterval(function() {
+            document.getElementById("clock").innerHTML = 
+                new Date().toTimeString();  
+        }, 1000)
+        
+        function logTitle(newTitle) {
+            var log = document.getElementById("log");
+            var newEntry = document.createElement("li");
+            var date = new Date();
+            newEntry.innerHTML = date.toTimeString() + " - " + newTitle;
+            log.appendChild(newEntry);
+        }
+        
+        function changeTitle(newTitle) {
+            if(!newTitle) {
+                newTitle = document.getElementById("textInput").value;
+            }
+            var titleElement = document.getElementById("Title");
+            titleElement.innerHTML = newTitle;
+            logTitle(newTitle);
+        }
+    </script>
+</html>
