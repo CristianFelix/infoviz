@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <title>Gapminder Wealth and Health</title>
+        <style>
+            .item {
+                box-shadow: 10px 10px 10px #ccc;
+                width: 250px
+            }
+        </style>
+    </head>
+    
+    <body>
+        <h1>D3</h1>
+        <input id="number" type="text" />
+        <button onclick="addNumber()">Add Number</button>
+        <div id="viz"></div>
+    </body>
+    
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script>
+        //My Code
+        var viz = d3.select("#viz");
+        viz.text("D3js");
+        var numbers = [1,2,5,8,6,7,9];
+        
+        d3.json("data.json", function(error, result) {
+            numbers = result;
+            render();
+        })
+        
+        
+        function render() {
+            var changes = viz.selectAll("div")
+                .data(numbers, function(d) { return d.Food });
+            
+            changes.enter()
+                    .append("div")
+                    .style("color", "red")
+                    .style({
+                        "background-color": "#ccc",
+                        border: "solid 1px #000"
+                    }).attr("class", "item")
+                    .text(function(d) {return d.Food + "("+ d.Deliciousness +")"}); 
+                
+            changes.exit().remove();
+            
+            changes.on("click", function(d, i) {
+                numbers.splice(i,1); 
+                render();
+            });
+        }
+                
+        
+        function addNumber() {
+            //d3.select("#number").property("value");
+            var newNumber = d3.select("#number").node().value;
+            numbers.push(newNumber);
+            render()
+        }
+    </script>
+</html>
+
+
+
