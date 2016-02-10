@@ -1,0 +1,23 @@
+<html>
+    <head></head>
+    <body>
+        <ul id="list"></ul>
+    </body>
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script>
+        d3.json("newData.json", function(error, result) {
+            console.log(result);
+            var country = result[0];
+            console.log(country);
+            console.log(country.income[2006]);
+            
+            var resultFiltered = result.filter(function(d) { return d.income[2008] != undefined})
+            
+            d3.select("#list")
+                .selectAll("li").data(resultFiltered)
+                .enter()
+                .append("li")
+                .text(function(d) { return d.name + ": " + d.income[2008]})
+        })
+    </script>
+</html>
