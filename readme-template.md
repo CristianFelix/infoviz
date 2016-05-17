@@ -1,6 +1,7 @@
 #Title of your project
-![alt text](https://raw.githubusercontent.com/CristianFelix/infoviz/master/Screen.png "Logo Title Text 1")
-**Authors**: Jhon Doe, Mark San
+![alt text](https://raw.githubusercontent.com/CristianFelix/infoviz/master/Screen.png "Screenshot")
+
+**Authors**: Jhon Doe ([github-user-name](https://github.com/CristianFelix)), Mark San ([github-user-name](https://github.com/CristianFelix))
 
 ##Description
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin fringilla nec magna sed consequat. Nam condimentum, nisl sed pretium luctus, dui orci tristique nunc, a scelerisque nisi est hendrerit metus. Duis feugiat consectetur odio, in pellentesque neque consequat vel. Pellentesque auctor nec nisi maximus imperdiet. Proin id tristique augue, id bibendum augue. Cras bibendum molestie mi. Nulla a diam in ipsum tincidunt bibendum. Proin condimentum libero non lorem dapibus feugiat.
